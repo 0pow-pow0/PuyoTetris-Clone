@@ -1,0 +1,81 @@
+@startuml UnityEvents_PuyoTetris
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+title UnityEvents esistenti nel codice - PuyoTetris
+
+' ============================================================
+' Classe che contiene (istanzia) tutti gli UnityEvent
+' ============================================================
+class TetrisLogic {
+  + onPieceMove : UnityEvent<int,int,bool>
+  + onPieceRotate : UnityEvent
+  + onPieceJustPlaced : UnityEvent
+  + onPieceJustPlacedAndScored : UnityEvent<int> (mai invocato, nessun subscriber)
+  + onLineClear : UnityEvent<List<(GameObject,int,int)>,float,int>
+  + onPieceCreated : UnityEvent<Tetramino>
+  + onMatchStart : UnityEvent
+  + onMatchGameOver : UnityEvent
+  --
+  ' Invocazioni (.Invoke)
+  + MoveActivePiece(int,int) : onPieceMove.Invoke(squareTraslY, squareTraslX, hasCollided)
+  + RotateLeft() : onPieceRotate.Invoke()
+  + RotateRight() : onPieceRotate.Invoke()
+  + CreateNewPiece() : onPieceCreated.Invoke(activePiece)
+  + VerifyAndExecuteTetraminoPlaceConditions(Tetramino) : onLineClear.Invoke(blocksRef, LINE_CLEAR_ANIMATION_TIME, linesDeleted); onPieceJustPlaced.Invoke()
+  + GameOverLogic() : onMatchGameOver.Invoke()
+  + MatchBegin() : onMatchStart.Invoke()
+  + Start() : onMatchStart.Invoke()
+}
+
+note right of TetrisLogic
+  Gli eventi sono campi auto-property istanziati con "= new()"
+  (es. public UnityEvent onPieceRotate { get; private set; } = new();).
+  I listener persistenti sono configurati nell'Inspector della scena Tetris.unity.
+end note
+
+' ============================================================
+' Classi che si iscrivono (subscriber)
+' ============================================================
+class FieldAudioManager {
+  + PlayMovePieceSound(int yTranslation, int xTranslation, bool hasCollided)
+  + PlayRotatePieceSound()
+  + PlayPlacePieceSound()
+  + PlayLineScoreSound(List<(GameObject,int,int)> blocksRef, float animationMaxTime, int linesDeleted)
+  + PlayMainBackgroundMusic()
+}
+
+class FieldAnimationManager {
+  + AnimateDestroyingBlocks(List<(GameObject,int,int)> blocksRef, float animationMaxTime, int linesDeleted)
+}
+
+class UIInGame {
+  + UpdateNextPieceIconBasedOnType(Tetramino activePiece)
+  + UpdateScoreboard(List<(GameObject,int,int)> blocksRef, float animationMaxTime, int linesDeleted)
+  + ResetScoreboard()
+}
+
+class UIGameOver {
+  + ShowPanel()
+  + HidePanel()
+}
+
+' ============================================================
+' Sottoscrizioni (persistent listeners in scena)
+' ============================================================
+TetrisLogic ..> FieldAudioManager : <<subscribe>> onPieceMove -> PlayMovePieceSound
+TetrisLogic ..> FieldAudioManager : <<subscribe>> onPieceRotate -> PlayRotatePieceSound
+TetrisLogic ..> FieldAudioManager : <<subscribe>> onPieceJustPlaced -> PlayPlacePieceSound
+TetrisLogic ..> FieldAnimationManager : <<subscribe>> onLineClear -> AnimateDestroyingBlocks
+TetrisLogic ..> FieldAudioManager : <<subscribe>> onLineClear -> PlayLineScoreSound
+TetrisLogic ..> UIInGame : <<subscribe>> onLineClear -> UpdateScoreboard
+TetrisLogic ..> UIInGame : <<subscribe>> onPieceCreated -> UpdateNextPieceIconBasedOnType
+TetrisLogic ..> FieldAudioManager : <<subscribe>> onMatchStart -> PlayMainBackgroundMusic
+TetrisLogic ..> UIGameOver : <<subscribe>> onMatchStart -> HidePanel
+TetrisLogic ..> UIInGame : <<subscribe>> onMatchStart -> ResetScoreboard
+TetrisLogic ..> UIGameOver : <<subscribe>> onMatchGameOver -> ShowPanel
+
+note bottom of FieldAudioManager
+  onPieceJustPlacedAndScored non ha subscriber (m_Calls: []).
+end note
+
+@enduml

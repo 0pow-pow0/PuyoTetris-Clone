@@ -1,0 +1,20 @@
+- abbassa audio SFX X
+- aggiungi musica X
+
+- metti background X
+- anima background X
+- cambia sprites pezzi X
+- aggiungi UI Score X
+- aggiungi UI Pouch X
+- metti scripts UI X
+- metti Tetrion Frame. X
+- Background che cambia
+- Fai menu
+- Fai menu pausa
+- Fai gameover
+
+- aggiungi animazione di lineClear
+	- Potrei fare comparire TETRIS, scritto sulle linee
+- programma pouch
+
+- Metti controlli telefono	
